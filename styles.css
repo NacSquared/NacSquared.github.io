@@ -22,6 +22,10 @@ body {
     text-align: center
 }
 
+.GamesTable {
+    font: white;
+}
+
 footer {
     font-size: 10px;
     color: white;
