@@ -4,6 +4,13 @@ header{
     text-align: center;
     font-size: 25px;
 }
+.header1{
+    font-size: 40px;
+}
+
+.logo{
+    border-radius: 25%;
+}
 
 body {
     background-color: #215258;
