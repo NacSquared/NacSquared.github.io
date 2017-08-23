@@ -1,5 +1,9 @@
+header{
+    background: linear-gradient(0deg, #215258, #3ed);
+}
+
 body {
-    background: linear-gradient(0deg, #3e606f, #324d59);
+    background-color: #215258;
 }
 
 footer {
