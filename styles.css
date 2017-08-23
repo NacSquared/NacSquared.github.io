@@ -1,12 +1,17 @@
 header{
+    color: white;
     background: linear-gradient(0deg, #215258, #3ed);
+    text-align: center;
 }
 
 body {
     background-color: #215258;
+    padding: 15px;
+    text-align: center
 }
 
 footer {
-    font-size: 5px;
-    color: grey;
+    font-size: 25px;
+    color: white;
+    text-align: right;
 }
