@@ -1,6 +1,6 @@
 header{
     color: white;
-    background: linear-gradient(0deg, #215258, #3ed);
+    background: linear-gradient(0deg, #1E373A, #3ed);
     text-align: center;
     font-size: 25px;
 }
@@ -18,12 +18,13 @@ header{
 }
 
 body {
-    background-color: #215258;
-    text-align: center
+    background-color: #1E373A;
+    text-align: center;
+    color: white;
 }
 
-th {
-    font: white;
+td {
+    font-size: 15px;
 }
 
 footer {
