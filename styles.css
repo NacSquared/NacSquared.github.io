@@ -25,6 +25,11 @@ body {
 
 td {
     font-size: 15px;
+    color: white;
+}
+th {
+    font-size: 25px;
+    color: white;
 }
 
 footer {
