@@ -23,9 +23,12 @@ body {
     color: white;
 }
 
+
 td {
     font-size: 15px;
     color: white;
+    padding: 0 40px 40px 40px;
+
 }
 th {
     font-size: 25px;
