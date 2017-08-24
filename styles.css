@@ -1,6 +1,24 @@
 html{
     font-family: Arial, Helvetica, sans-serif;
 }
+
+.logo{
+    border-radius: 35%;
+}
+
+header{
+    color: white;
+    background: linear-gradient(0deg, #1E373A, #32EEDD);
+    text-align: center;
+    font-size: 25px;
+}
+
+body {
+    background-color: #1E373A;
+    text-align: center;
+    color: white;
+}
+
 a:link{
     color: white;
 }
@@ -8,38 +26,51 @@ a:visited{
     color:greenyellow;
 }
 a:hover{
+    background-color: grey;
     color: hotpink;
+}
+
+.N2GamesHeader{
     font-size: 40px;
 }
 
-header{
+h1 {
+    padding-bottom: 5px;
+}
+
+.nav ul {
+    position: fixed;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    top: 150px;
+    width: 200px;
+}
+
+.nav li {
+    list-style-type: none;
+    width: 200px;
+}
+
+.nav li a {
+    display: block;
+    padding: 8px 16px 8px;
+
+}
+
+.content {
     color: white;
-    background: linear-gradient(0deg, #1E373A, #3ed);
     text-align: center;
     font-size: 25px;
-}
-.header2{
-    font-size: 40px;
+    position: fixed;
+    left: 310px;
+    top: 250px;
+    padding: 20px 40px 0 0;
 }
 
 table {
     border: 20px white;
     text-align: center;
-}
-
-.logo{
-    border-radius: 35%;
-}
-
-.nav li{
-    display: inline;
-    padding-right: 20px;
-}
-
-body {
-    background-color: #1E373A;
-    text-align: center;
-    color: white;
 }
 
 td {
