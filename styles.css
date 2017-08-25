@@ -35,16 +35,19 @@ a:hover{
 }
 
 h1 {
-    padding-bottom: 5px;
+    padding-top: 15px;
+    padding-bottom: 1px;
 }
 
-.nav ul {
-    position: fixed;
+h2 {
+    padding-bottom: 20px;
+}
+
+.nav {
+    float: left;
+    max-width: 160px;
     margin: 0;
-    padding: 0;
-    left: 0;
-    top: 150px;
-    width: 200px;
+    padding: 1em;
 }
 
 .nav li {
@@ -62,10 +65,9 @@ h1 {
     color: white;
     text-align: center;
     font-size: 25px;
-    position: fixed;
-    left: 310px;
-    top: 250px;
-    padding: 20px 40px 0 0;
+    max-width: 1600px;
+    margin-left: 190px;
+    padding: 1em;
 }
 
 table {
