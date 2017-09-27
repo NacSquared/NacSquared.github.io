@@ -1,0 +1,76 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Excel;
+using ICSharpCode.SharpZipLib;
+using System.IO;
+using System.Data;
+using Microsoft.VisualBasic.FileIO;
+
+namespace EASHistoricalDataImportProject
+{
+    class Program
+    {
+
+        static void Main(string[] args)
+        {
+            ReadFromExcel();
+        }
+
+
+        private static void ReadFromExcel()
+        {
+            int month = 1;
+            int year = 2008;
+            int quarter = 1;
+
+            DateTime DSTStarts = DateTime.ParseExact("20000101", "yyyyMMdd", null);
+            DateTime DSTEnds = DateTime.ParseExact("20000101", "yyyyMMdd", null);
+
+            //Puts all of the files from specified folder path into array
+            string[] fileEntries = Directory.GetFiles(Properties.Settings.Default.sourceDir);
+
+            string strFileName = "S:\\Temporary\\NickS\\CU_TO_MCG_Export_TEST_ALL METERS_" + year.ToString() + "_Quarter " + quarter.ToString() + ".csv";
+            System.IO.StreamWriter objWriter = new System.IO.StreamWriter(strFileName, true);
+
+            //iterates through files in array
+            foreach (string fileName in fileEntries)
+            {               
+                using (TextFieldParser parser = new TextFieldParser(fileName))
+                {
+                    parser.TextFieldType = FieldType.Delimited;
+                    parser.SetDelimiters(",");
+                    while (!parser.EndOfData)
+                    {
+                        //Processing row
+                        string[]fields = parser.ReadFields();
+
+                        string strDateTime = fields[1];
+
+                        string subDateTime = strDateTime.Substring(0, 22);
+
+                        if (strDateTime != "")
+                        {
+                            DateTime dateTime = Convert.ToDateTime(subDateTime);
+
+                            if (dateTime.Year == year && (dateTime.Month == month || dateTime.Month == month + 1 || dateTime.Month == month + 2))
+                            {
+                                //Foreach value in the row...
+                                foreach (object value in fields)
+                                {
+                                    objWriter.Write(value + ",");                                                                  
+                                }
+
+                                objWriter.Write("" + Environment.NewLine);                               
+                            }
+                        }
+                    }                   
+                }                             
+            }
+
+            objWriter.Close();
+        }
+    }
+}
