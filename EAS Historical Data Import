@@ -1,0 +1,670 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Excel;
+using ICSharpCode.SharpZipLib;
+using System.IO;
+using System.Data;
+
+namespace EASHistoricalDataImportProject
+{
+    class Program
+    {
+
+        private static bool arrayBuilt;
+        private static bool DaylightSavings = false;
+        private static bool SkipValue = false;
+
+        static void Main(string[] args)
+        {
+            ReadFromExcel();
+        }
+
+
+        private static void ReadFromExcel()
+        {
+            string strMeterName = "";
+
+            bool is2008 = false;
+            bool is2009 = false;
+            bool is2010 = false;
+            bool is2011 = false;
+            bool is2012 = false;
+            bool is2013 = false;
+            bool is2014 = false;
+
+            DateTime DSTStarts = DateTime.ParseExact("20000101", "yyyyMMdd", null);
+            DateTime DSTEnds = DateTime.ParseExact("20000101", "yyyyMMdd", null);
+
+            //Puts all of the files from specified folder path into array
+            string[] fileEntries = Directory.GetFiles(Properties.Settings.Default.sourceDir);
+
+            //iterates through files in array
+            foreach (string fileName in fileEntries)
+            {
+                //opens file
+                FileStream stream = File.Open(fileName, FileMode.Open, FileAccess.Read);
+
+                //Creates File name for NEW DATA File
+                string strFileName = "S:\\Temporary\\NickS\\NS EAS Historical Data Load\\" + "DATA " + fileName.Remove(0, 33);
+                strFileName = strFileName.Substring(0, strFileName.Length - 5);
+                strFileName = strFileName + ".csv";
+
+                
+
+                arrayBuilt = false;
+
+                //File.Open(strFileName, FileMode.Open, FileAccess.ReadWrite);
+
+                //Reading from a OpenXml Excel file (2007 format; *.xlsx)
+                IExcelDataReader excelReader = ExcelReaderFactory.CreateOpenXmlReader(stream);
+
+                //DataSet - Create column names from first row
+                excelReader.IsFirstRowAsColumnNames = true;
+                DataSet result = excelReader.AsDataSet();
+                
+                //Writes new file
+                System.IO.StreamWriter objWriter = new System.IO.StreamWriter(strFileName, true);
+
+                //Spaces each hour of each day to have its own line
+                objWriter.WriteLine("");
+
+                //Foreach table...
+                foreach (DataTable table in result.Tables)
+                {
+                    //resets the dates for each file
+                    is2008 = false;
+                    is2009 = false;
+                    is2010 = false;
+                    is2011 = false;
+                    is2012 = false;
+                    is2013 = false;
+                    is2014 = false;
+                    int rowCount = 1;
+                    DaylightSavings = false;
+
+                    //Foreach row per table...  
+                    foreach (DataRow row in table.Rows)
+                    {
+                        //Hour tracker
+                        int i = 0;
+                        //objWriter.WriteLine("");
+                                               
+                        rowCount++;
+
+                        //Assigns first element of the row as the DateTime
+                        string dateTime = row.ItemArray[0].ToString();
+
+                        //Checks to see that DateTime has already been captured
+                        if (dateTime != "")
+                        {
+                            DateTime UTCDateTime;
+
+                            //Validation Testing***
+                            bool success = DateTime.TryParse(dateTime, out UTCDateTime);
+                            if (!success)
+                            {
+                                
+                            }
+
+                            //Sets the date for Daylight Saving time to start and end based on the year
+                            if (UTCDateTime.Year == 2008)
+                            {
+                                is2008 = true;
+                                DSTStarts = DateTime.ParseExact("20080309", "yyyyMMdd", null);
+                                DSTEnds = DateTime.ParseExact("20081102", "yyyyMMdd", null);
+                            }
+
+                            if (UTCDateTime.Year == 2009)
+                            {
+                                is2009 = true;
+                                DSTStarts = DateTime.ParseExact("20090308", "yyyyMMdd", null);
+                                DSTEnds = DateTime.ParseExact("20091101", "yyyyMMdd", null);
+                            }
+
+                            if (UTCDateTime.Year == 2010)
+                            {
+                                is2010 = true;
+                                DSTStarts = DateTime.ParseExact("20100314", "yyyyMMdd", null);
+                                DSTEnds = DateTime.ParseExact("20101107", "yyyyMMdd", null);
+                            }
+
+                            if (UTCDateTime.Year == 2011)
+                            {
+                                is2011 = true;
+                                DSTStarts = DateTime.ParseExact("20110313", "yyyyMMdd", null);
+                                DSTEnds = DateTime.ParseExact("20111106", "yyyyMMdd", null);
+                            }
+
+                            if (UTCDateTime.Year == 2012)
+                            {
+                                is2012 = true;
+                                DSTStarts = DateTime.ParseExact("20120311", "yyyyMMdd", null);
+                                DSTEnds = DateTime.ParseExact("20121104", "yyyyMMdd", null);
+                            }
+
+                            if (UTCDateTime.Year == 2013)
+                            {
+                                is2013 = true;
+                                DSTStarts = DateTime.ParseExact("20130310", "yyyyMMdd", null);
+                                DSTEnds = DateTime.ParseExact("20131103", "yyyyMMdd", null);
+                            }
+
+                            if (UTCDateTime.Year == 2014)
+                            {
+                                is2014 = true;
+                                DSTStarts = DateTime.ParseExact("20140309", "yyyyMMdd", null);
+                                DSTEnds = DateTime.ParseExact("20141102", "yyyyMMdd", null);
+                            }
+
+                            //Foreach value in the row...(Meter Values)
+                            foreach (object value in row.ItemArray)
+                            {
+
+                                //Iterates until end of row...
+                                if (value.ToString() != "")
+                                {
+                                    //Ensures we have DateTime
+                                    if (dateTime != "")
+                                    {
+                                        //Prevents grabbing DateTime as a value
+                                        if (value.ToString() != row.ItemArray[0].ToString())
+                                        {
+                                            //Sends DateTime to ZuluFormat() and Returns with proper format
+                                            dateTime = ZuluFormat(UTCDateTime, i);
+
+                                            //Gets Meter ID Number via FILE NAME STRING MANIPULATION
+                                            string strMeterID = fileName.Remove(0, 33);
+                                            strMeterID = strMeterID.Substring(9, 3);
+
+                                            //Meter ID Numbers are always 2 and 3 digits. When 2 digits, ID contains ')'. This removes the extra character and any remaining spaces.
+                                            if (strMeterID.Contains(")"))
+                                            {
+                                                strMeterID = strMeterID.Substring(0, 2);
+                                                strMeterID = strMeterID.TrimEnd();
+                                            }
+
+                                            //Only need one array
+                                            if (arrayBuilt == false)
+                                            {
+                                                //Sends Meter ID to GetMeterDescription() and Returns with proper Meter NAME
+                                                strMeterName = GetMeterDescription(strMeterID);
+                                            }
+
+                                            //Conditional checks for the DST beginning and ending times/values
+                                            if (is2008 == true)
+                                            {
+                                                //if on correct date...& hour 2... & the value hasnt already been skipped
+                                                if (UTCDateTime == DSTStarts && i == 1)
+                                                {
+                                                    if (SkipValue == false)
+                                                    {
+                                                        SkipValue = true;                                                    
+                                                    }
+                                                    else
+                                                    {
+                                                        DaylightSavings = true;
+                                                        i++;
+                                                        dateTime = ZuluFormat(UTCDateTime, i);
+                                                        SkipValue = false;
+                                                    }                                                                                        
+                                                }
+                                                //if on correct date...& hour 24
+                                                if (UTCDateTime == DSTEnds && i == 24)
+                                                {
+                                                    DaylightSavings = false;
+                                                    i--;
+                                                    dateTime = ZuluFormat(UTCDateTime, i);
+                                                }
+                                            }
+
+                                            if (is2009 == true)
+                                            {
+                                                if (UTCDateTime == DSTStarts && i == 1)
+                                                {
+                                                    if (SkipValue == false)
+                                                    {
+                                                        SkipValue = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        DaylightSavings = true;
+                                                        i++;
+                                                        dateTime = ZuluFormat(UTCDateTime, i);
+                                                        SkipValue = false;
+                                                    }
+                                                }
+                                                //if on correct date...& hour 24
+                                                if (UTCDateTime == DSTEnds && i == 24)
+                                                {
+                                                    DaylightSavings = false;
+                                                    i--;
+                                                    dateTime = ZuluFormat(UTCDateTime, i);
+                                                }
+                                            }
+
+                                            if (is2010 == true)
+                                            {
+                                                if (UTCDateTime == DSTStarts && i == 1)
+                                                {
+                                                    if (SkipValue == false)
+                                                    {
+                                                        SkipValue = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        DaylightSavings = true;
+                                                        i++;
+                                                        dateTime = ZuluFormat(UTCDateTime, i);
+                                                        SkipValue = false;
+                                                    }
+                                                }
+                                                //if on correct date...& hour 24
+                                                if (UTCDateTime == DSTEnds && i == 24)
+                                                {
+                                                    DaylightSavings = false;
+                                                    i--;
+                                                    dateTime = ZuluFormat(UTCDateTime, i);
+                                                }
+                                            }
+
+                                            if (is2011 == true)
+                                            {
+                                                if (UTCDateTime == DSTStarts && i == 1)
+                                                {
+                                                    if (SkipValue == false)
+                                                    {
+                                                        SkipValue = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        DaylightSavings = true;
+                                                        i++;
+                                                        dateTime = ZuluFormat(UTCDateTime, i);
+                                                        SkipValue = false;
+                                                    }
+                                                }
+                                                //if on correct date...& hour 24
+                                                if (UTCDateTime == DSTEnds && i == 24)
+                                                {
+                                                    DaylightSavings = false;
+                                                    i--;
+                                                    dateTime = ZuluFormat(UTCDateTime, i);
+                                                }
+                                            }
+
+                                            if (is2012 == true)
+                                            {
+                                                if (UTCDateTime == DSTStarts && i == 1)
+                                                {
+                                                    if (SkipValue == false)
+                                                    {
+                                                        SkipValue = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        DaylightSavings = true;
+                                                        i++;
+                                                        dateTime = ZuluFormat(UTCDateTime, i);
+                                                        SkipValue = false;
+                                                    }
+                                                }
+                                                //if on correct date...& hour 24
+                                                if (UTCDateTime == DSTEnds && i == 24)
+                                                {
+                                                    DaylightSavings = false;
+                                                    i--;
+                                                    dateTime = ZuluFormat(UTCDateTime, i);
+                                                }
+                                            }
+
+                                            if (is2013 == true)
+                                            {
+                                                if (UTCDateTime == DSTStarts && i == 1)
+                                                {
+                                                    if (SkipValue == false)
+                                                    {
+                                                        SkipValue = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        DaylightSavings = true;
+                                                        i++;
+                                                        dateTime = ZuluFormat(UTCDateTime, i);
+                                                        SkipValue = false;
+                                                    }
+                                                }
+                                                //if on correct date...& hour 24
+                                                if (UTCDateTime == DSTEnds && i == 24)
+                                                {
+                                                    DaylightSavings = false;
+                                                    i--;
+                                                    dateTime = ZuluFormat(UTCDateTime, i);
+                                                }
+                                            }
+
+                                            if (is2014 == true)
+                                            {
+                                                if (UTCDateTime == DSTStarts && i == 1)
+                                                {
+                                                    if (SkipValue == false)
+                                                    {
+                                                        SkipValue = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        DaylightSavings = true;
+                                                        i++;
+                                                        dateTime = ZuluFormat(UTCDateTime, i);
+                                                        SkipValue = false;
+                                                    }
+                                                }
+                                                //if on correct date...& hour 24
+                                                if (UTCDateTime == DSTEnds && i == 24)
+                                                {
+                                                    DaylightSavings = false;
+                                                    i--;
+                                                    dateTime = ZuluFormat(UTCDateTime, i);
+                                                }
+                                            }
+
+                                            //Makes sure we aren't skipping value due to DST
+                                            //
+                                            //
+                                            //
+                                            //WRTIES VALUE
+                                            if (i != 24)
+                                            {
+                                                if (SkipValue == false)
+                                                {
+                                                    objWriter.Write(strMeterName + "," + dateTime + "," + value + Environment.NewLine);
+                                                    i++;
+                                                }
+                                                else
+                                                {
+
+                                                }
+                                            }
+                                            else
+                                            {
+
+                                            }                                                                                                                                                                                                                           
+                                        }                                       
+                                    }
+                                }
+                                else
+                                {
+
+                                }
+                            }
+                        }                      
+                    }
+                }
+
+                //Ends processes
+                objWriter.Close();
+                excelReader.Close();
+            }
+        }
+
+
+        //Data passed in must be formatted according to Zulu format
+        private static string ZuluFormat(DateTime inputDateTime, int hour)
+        {
+            string strUTCDateTime = "";
+            string strYear = inputDateTime.Year.ToString();
+            string prevMonth = inputDateTime.Month.ToString();
+            string strMonth = inputDateTime.Month.ToString();
+            int intCurrentDay = inputDateTime.Day;           
+            TimeSpan result;
+
+            //If the values are within the last 5 hours of the day, the values are pushed to the next day because of the 5 hour difference
+            if (DaylightSavings == true)
+            {
+                if (hour > 17 )//18)
+                {
+                    intCurrentDay += 1;
+                }                
+            }
+            else
+            {
+                if (hour > 16 )//17)
+                {
+                    intCurrentDay += 1;
+                }
+            }
+
+            strMonth = MoveValueForward(prevMonth, strYear, intCurrentDay);
+
+            if (!strMonth.Equals(prevMonth))
+            {
+                intCurrentDay = 1;
+            }
+
+            string strDay = intCurrentDay.ToString();
+
+            if (strDay.Length < 2)
+            {
+                strDay = "0" + strDay;
+            }
+
+            if (strMonth.Length < 2)
+            {
+                strMonth = "0" + strMonth;
+            }
+
+
+
+            //Converting Central Standard Time (CST) To Greenwich Mean Time (GMT)
+            if (DaylightSavings == true)
+            {
+                result = TimeSpan.FromHours(hour + 6); //5);
+            }
+            else
+            {
+                result = TimeSpan.FromHours(hour + 7); //6);
+            }
+            
+            string strTime = result.ToString();
+
+
+
+            //Gets rid of the extra hour numeral created by 5 hour advance at the end of the day
+            if (strTime.Length > 8)
+            {
+                strTime = strTime.Substring(2, 8);
+            }
+
+            //Pushes final 4 values of the year into the new year due to time conversion
+            if (inputDateTime.Month == 12 && inputDateTime.Day == 31)  //18
+            {
+                             
+                if (inputDateTime.Year == 2014 && hour > 17)
+                {                  
+                        strDay = "01";
+                        strMonth = "01";
+                        strYear = inputDateTime.AddDays(+1).Year.ToString();                   
+                }
+                else if (inputDateTime.Year != 2014 && hour > 16)
+                {
+                    strDay = "01";//inputDateTime.AddDays(+01).Day.ToString();
+                    strMonth = "01"; //inputDateTime.AddDays(+01).Month.ToString();
+                    strYear = inputDateTime.AddDays(+1).Year.ToString();
+                }
+                
+            }
+
+            if (inputDateTime.Month == 12 && strDay == "32")
+            {
+
+                strDay = "01";
+                strMonth = "01";
+                strYear = inputDateTime.AddDays(+1).Year.ToString();
+
+            }
+
+            strUTCDateTime = strYear + "-" + strMonth + "-" + strDay + "T" + strTime + ".00" + "Z";
+
+            return strUTCDateTime;
+        }
+
+        private static string MoveValueForward(string theMonth, string theYear, int currentDay)
+        {
+            //Kicks last values of Jan to Feb... have to do this for each month until better solution is found
+            if (theMonth.Equals("1") && currentDay == 32)
+            {
+                theMonth = "2";
+                currentDay = 1;
+            }
+
+            //Feb to March... LEAP YEAR
+            if (theMonth.Equals("2"))
+            {
+                if ((theYear.Equals("2008") || theYear.Equals("2012") || theYear.Equals("2016")))
+                {
+                    if (currentDay == 30)
+                    {
+                        theMonth = "3";
+                        currentDay = 1;
+                    }                   
+                }
+                else
+                {
+                    if (currentDay == 29)
+                    {
+                        theMonth = "3";
+                        currentDay = 1;
+                    }
+                }
+            }
+
+            //Feb to March... not leap year
+            //if (theMonth.Equals("2") && currentDay == 29 && !(theYear.Equals("2008") || theYear.Equals("2012") || theYear.Equals("2012")))
+            //{
+            //    theMonth = "3";
+            //    currentDay = 1;
+            //}
+
+            //March to April
+            if (theMonth.Equals("3") && currentDay == 32)
+            {
+                theMonth = "4";
+                currentDay = 1;
+            }
+
+            //April to May
+            if (theMonth.Equals("4") && currentDay == 31)
+            {
+                theMonth = "5";
+                currentDay = 1;
+            }
+
+            //May to June
+            if (theMonth.Equals("5") && currentDay == 32)
+            {
+                theMonth = "6";
+                currentDay = 1;
+            }
+
+            //June to July
+            if (theMonth.Equals("6") && currentDay == 31)
+            {
+                theMonth = "7";
+                currentDay = 1;
+            }
+
+            //July to August
+            if (theMonth.Equals("7") && currentDay == 32)
+            {
+                theMonth = "8";
+                currentDay = 1;
+            }
+
+            //August to September
+            if (theMonth.Equals("8") && currentDay == 32)
+            {
+                theMonth = "9";
+                currentDay = 1;
+            }
+
+            //September to October
+            if (theMonth.Equals("9") && currentDay == 31)
+            {
+                theMonth = "10";
+                currentDay = 1;
+            }
+
+            //October to November
+            if (theMonth.Equals("10") && currentDay == 32)
+            {
+                theMonth = "11";
+                currentDay = 1;
+            }
+
+            //November to December
+            if (theMonth.Equals("11") && currentDay == 31)
+            {
+                theMonth = "12";
+                currentDay = 1;
+            }
+
+            return theMonth;
+        }
+
+        //Takes MeterID from File and searches through the XML File Array for the corresponding Meter NAME
+        private static string GetMeterDescription(string meterID)
+        {
+            System.Xml.XmlReaderSettings readerSettings = new System.Xml.XmlReaderSettings();
+            readerSettings.IgnoreWhitespace = true;
+            System.Xml.XmlTextReader reader = new System.Xml.XmlTextReader(Properties.Settings.Default.meterDescriptionXML);
+
+            string meterName = "";
+            //string contents = "";
+            int i = 0;
+            int index = 0;
+
+            //Two separate arrays, one for the IDs and one for each of the Names. Order is respective.
+            string[] meterIDArray = new string[1000];
+            string[] meterNameArray = new string[1000];
+
+            //Only build array once
+            if (arrayBuilt == false)
+            {
+                //meterArray = new string[1000, 2];
+
+                //Builds Arrays
+                while (reader.Read())
+                {
+                    reader.MoveToContent();
+                    if (reader.NodeType == System.Xml.XmlNodeType.Element && reader.Name == "MeterID")
+                    {
+                        meterIDArray[i] = reader.ReadInnerXml().Trim();
+
+                    }
+                    if (reader.NodeType == System.Xml.XmlNodeType.Element && reader.Name == "MeterDescription")
+                    {
+                        meterNameArray[i] = reader.ReadInnerXml().Trim();
+                        i++;
+                    }
+                }
+            }           
+
+            //Once completed
+            arrayBuilt = true;
+
+            //Gets the index value of the ID that was passed in
+            index = Array.IndexOf(meterIDArray, meterID);
+
+            //So long that the index is found...
+            if (index > -1)
+            {
+                //Assign that respective ID to a Meter NAME
+                meterName = meterNameArray[index];
+            }
+          
+            return meterName;
+        }
+    }
+}
