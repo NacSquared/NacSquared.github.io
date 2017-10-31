@@ -7,7 +7,7 @@
   <link rel="shortcut icon" href="n2headicon.ico">
   <title>Contact Us</title>
   <meta name="description" content="HTML5 Template">
-
+  <script src="myScript.js"></script>
 </head>
 
 <body>
@@ -29,7 +29,7 @@
   <p>
       Please contact us with any problems or regards you may have and we will respond to you via email as soon as possible.
   </p>
-  <form>
+  <form name = "contactForm" onsubmit="return dataValidation()" method="GET">  
       First name:
       <input type="text" name="firstname"><br>
       Last name:
@@ -39,14 +39,14 @@
       <input type="radio" name="response" value="question"> Question<br>
       <input type="radio" name="response" value="problem"> Problem<br>
       <input type="radio" name="response" value="orderstatus"> Order Status Update<br>
-  </form>
-  <textarea name="message" cols="30" rows="10">
-  Comments...
-  </textarea>
-  <form action="">
-      <input type="submit" value="Submit">
+
+      <textarea name="message" cols="30" rows="10">
+      Comments...
+      </textarea><br>
+      <input type="submit" value="Submit"><br>
       <input type="reset">
   </form>
+
 </div>
 
 </body>
