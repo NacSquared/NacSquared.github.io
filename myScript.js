@@ -1,3 +1,4 @@
+
 function dataValidation() 
     {
         var x = document.forms["contactForm"]["firstname"].value;
@@ -15,3 +16,5 @@ function dataValidation()
             return false;
         }
     }
+
+document.getElementById("date").innerHTML = new Date();
