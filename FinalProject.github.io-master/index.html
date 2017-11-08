@@ -1,0 +1,36 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+    <title>The Great Race</title>
+    <meta name="race" content="HTML5 Template">
+</head>
+
+<body>
+    <header>
+        <img src="Images/redStopLight.png" onclick="startRace(), changeLight()" alt="Red Stop Light" style="width: 150px; height: 200px;" id="redStopLight">
+    </header>
+    <br>
+    <br>
+    <br>
+    <br>
+    <div id="greenCar">
+        <img src="Images/greenCar.png" alt="Green Car" style="width: 100px; height: 75px;">
+    </div>
+    <br>
+    <br>
+    <br>
+    <div id="redCar">
+        <img src="Images/redCar.png" alt="Red Car" style="width: 100px; height: 75px;"> 
+    </div>
+    <br>
+    <br>
+    <div id="WinningCar">
+        <h1>WINNER!</h1>
+        <img src="Images/greenCar.png" onclick="reset()" style="width: 400px; height: 300px;" id="winningCarID">
+    </div>
+</body>
+<script src="myScript.js"></script>
+</html>
