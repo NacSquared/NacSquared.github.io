@@ -10,6 +10,8 @@ var raceStarted = false;
 function changeLight()
 {
     image.src = "Images/greenStopLight.png";
+    image.style.width = '350px';
+    image.style.width = '200px';
 }
 
 function startRace()
@@ -53,6 +55,8 @@ function startRace()
 function reset()
 {
     image.src = "Images/redStopLight.png";
+    image.style.width = '350px';
+    image.style.width = '200px';
     winningCar.style.display = 'none';
     greenCar.style.marginLeft = 0;
     redCar.style.marginLeft = 0;
